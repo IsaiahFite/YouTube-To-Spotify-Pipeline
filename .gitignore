@@ -1,2 +1,9 @@
 #virtual environment
 venv/
+
+#api keys
+.env
+
+tests/__pycache__/
+__pycache__/
+*.pyc
