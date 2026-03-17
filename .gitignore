@@ -4,6 +4,11 @@ venv/
 #api keys
 .env
 
+#pytest cache
+.pytest_cache/
 tests/__pycache__/
 __pycache__/
 *.pyc
+
+#Coverage reports
+.coverage
