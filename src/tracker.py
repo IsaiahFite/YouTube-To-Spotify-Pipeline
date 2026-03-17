@@ -1,5 +1,6 @@
 import json
 
+
 def load_processed():
     try:
         with open("data/processed.json", "r") as f:
@@ -7,11 +8,13 @@ def load_processed():
     except FileNotFoundError:
         return []
 
+
 def save_processed(timestamp):
     processed = load_processed()
     processed.append(timestamp)
     with open("data/processed.json", "w") as f:
         json.dump(processed, f, indent=4)
+
 
 def get_most_recent_timestamp():
     processed = load_processed()
