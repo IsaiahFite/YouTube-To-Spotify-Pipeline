@@ -243,3 +243,25 @@ def test_get_video_details_empty(mock_youtube, setup_and_teardown_empty):
         details = get_video_details([])
         # Assert - check that the output is an empty list
         assert details == []
+
+# ==============================================================================
+# Youtube Video Details pagination tests
+# ==============================================================================
+@patch("src.youtube.youtube")
+def test_get_video_details_pagination(mock_youtube, setup_and_teardown_empty):
+    # Arrange - set up the mock response for more than 50 video IDs
+    video_ids = [f"video{i}" for i in range(1, 101)]
+    with patch("src.youtube.youtube") as mock_youtube:
+        mock_youtube.videos().list().execute.side_effect = [
+            {"items": [{"id": {"videoId": f"video{i}"}, "snippet": {"title": f"Video {i}"}, "contentDetails": {"duration": f"PT{i}M"}} for i in range(1, 51)]},
+            {"items": [{"id": {"videoId": f"video{i}"}, "snippet": {"title": f"Video {i}"}, "contentDetails": {"duration": f"PT{i}M"}} for i in range(51, 101)]},
+        ]
+        # Act - call the function
+        from src.youtube import get_video_details
+        details = get_video_details(video_ids)
+        # Assert - check that all video details are returned correctly
+        assert len(details) == 100
+        for i in range(1, 101):
+            assert details[i-1]["id"]["videoId"] == f"video{i}"
+            assert details[i-1]["snippet"]["title"] == f"Video {i}"
+            assert details[i-1]["contentDetails"]["duration"] == f"PT{i}M"

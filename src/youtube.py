@@ -49,8 +49,10 @@ def deduplicate_videos(videos):
 
 def get_video_details(video_ids):
     details = []
-    response = youtube.videos().list(part="snippet,contentDetails", id=",".join(video_ids)).execute()
-    details.extend(response["items"])
+    for i in range(0, len(video_ids), 50):
+        chunk = video_ids[i:i+50]
+        response = youtube.videos().list(part="snippet,contentDetails", id=",".join(chunk)).execute()
+        details.extend(response["items"])
     return details
 
 if __name__ == "__main__": #pragma: no cover
