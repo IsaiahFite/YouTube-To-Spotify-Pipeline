@@ -24,9 +24,9 @@ The pipeline runs on a GitHub Actions cron schedule — no server required, comp
 |-----------|-------------|--------|
 | 1 | Setup & Scaffolding | ✅ Complete |
 | 2 | YouTube Detection | ✅ Complete |
-| 3 | CI/CD Part 1 (Automated Testing) | 🔄 In Progress |
-| 4 | Audio Extraction | ⬜ Not Started |
-| 5 | File Hosting | ⬜ Not Started |
+| 3 | CI/CD Part 1 (Automated Testing) | ✅ Complete |
+| 4 | Audio Extraction | ✅ Complete |
+| 5 | File Hosting | ✅ Complete |
 | 6 | RSS Feed Generation | ⬜ Not Started |
 | 7 | CI/CD Part 2 (Scheduled Pipeline) | ⬜ Not Started |
 | 8 | Integration Test | ⬜ Not Started |

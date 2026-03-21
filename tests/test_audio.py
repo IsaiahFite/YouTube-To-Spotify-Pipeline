@@ -20,12 +20,16 @@ def test_download_audio_success(mock_is_file, mock_ydl):
     )
     assert result == expected_path
 
+
 @patch("src.audio.os.getenv", return_value=None)
 def test_download_audio_ffmpeg_location_not_set(mock_getenv):
     video_id = "test_video_id"
     save_path = "test_save_path"
-    with pytest.raises(RuntimeError, match="FFMPEG_LOCATION not set in environment variables"):
+    with pytest.raises(
+        RuntimeError, match="FFMPEG_LOCATION not set in environment variables"
+    ):
         download_audio(video_id, save_path)
+
 
 @patch("src.audio.yt_dlp.YoutubeDL")
 @patch("src.audio.Path.is_file")
@@ -37,6 +41,7 @@ def test_download_audio_file_not_created(mock_is_file, mock_ydl):
     save_path = "test_save_path"
     with pytest.raises(RuntimeError, match="Failed to create audio file"):
         download_audio(video_id, save_path)
+
 
 @patch("src.audio.yt_dlp.YoutubeDL")
 def test_download_audio_download_error(mock_ydl):
