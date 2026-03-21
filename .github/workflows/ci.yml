@@ -35,4 +35,5 @@ jobs:
           YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
           START_DATE: ${{ secrets.START_DATE }}
+          FFMPEG_LOCATION: /usr/bin/ffmpeg
         run: pytest --cov=src --cov-report=term-missing
