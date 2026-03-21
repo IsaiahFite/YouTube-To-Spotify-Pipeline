@@ -12,3 +12,6 @@ __pycache__/
 
 #Coverage reports
 .coverage
+
+#Audio files
+data/audio/*.mp3
