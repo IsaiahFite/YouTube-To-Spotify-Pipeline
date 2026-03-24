@@ -69,3 +69,6 @@ def run_pipeline() -> None:
                     raise RuntimeError(
                         f"Video {video_id} failed on retry. Pipeline requires maintenance: {e}"
                     ) from e
+
+if __name__ == "__main__":  # pragma: no cover
+    run_pipeline()
