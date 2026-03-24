@@ -20,8 +20,9 @@ def download_audio(video_id: str, save_path: str) -> str:
             Any,
             {
                 "format": "bestaudio/best",
-                "outtmpl": f"{save_path}/%(id)s.mp3",
+                "outtmpl": f"{save_path}/%(id)s",
                 "ffmpeg_location": FFMPEG_LOCATION,
+                "remote_components": "ejs:github",
                 "postprocessors": [
                     {
                         "key": "FFmpegExtractAudio",
