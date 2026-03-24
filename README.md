@@ -27,9 +27,9 @@ The pipeline runs on a GitHub Actions cron schedule — no server required, comp
 | 3 | CI/CD Part 1 (Automated Testing) | ✅ Complete |
 | 4 | Audio Extraction | ✅ Complete |
 | 5 | File Hosting | ✅ Complete |
-| 6 | RSS Feed Generation | ⬜ Not Started |
-| 7 | CI/CD Part 2 (Scheduled Pipeline) | ⬜ Not Started |
-| 8 | Integration Test | ⬜ Not Started |
+| 6 | RSS Feed Generation |  ✅ Complete |
+| 7 | CI/CD Part 2 (Scheduled Pipeline) | ✅ Complete |
+| 8 | Integration Test | ✅ Complete |
 | 9 | Spotify Registration | ⬜ Not Started |
 
 ---
