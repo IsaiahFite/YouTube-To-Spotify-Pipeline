@@ -38,4 +38,9 @@ jobs:
           YOUTUBE_CHANNEL_ID: ${{ secrets.YOUTUBE_CHANNEL_ID }}
           START_DATE: ${{ secrets.START_DATE }}
           FFMPEG_LOCATION: /usr/bin/ffmpeg
+          PODCAST_TITLE: ${{ secrets.PODCAST_TITLE }}
+          PODCAST_DESCRIPTION: ${{ secrets.PODCAST_DESCRIPTION }}
+          PODCAST_LINK: ${{ secrets.PODCAST_LINK }}
+          PODCAST_LANGUAGE: ${{ secrets.PODCAST_LANGUAGE }}
+          PODCAST_IMAGE: ${{ secrets.PODCAST_IMAGE }}
         run: pytest --cov=src --cov-report=term-missing
