@@ -4,3 +4,7 @@ lint = "ruff check src tests"
 format = "ruff format src tests"
 typecheck = "mypy src"
 check = "task lint && task typecheck && task test"
+[tool.pytest.ini_options]
+markers = [
+    "integration: marks tests as integration tests (deselect with '-m \"not integration\"')",
+]
