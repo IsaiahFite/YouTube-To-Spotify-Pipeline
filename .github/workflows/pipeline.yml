@@ -36,6 +36,9 @@ jobs:
         uses: denoland/setup-deno@v2
         with:
           deno-version: v2.x
+      
+      - name: Write YouTube cookies
+        run: echo "${{ secrets.YOUTUBE_COOKIES }}" > cookies.txt
         
       - name: Run Pipeline
         env:
@@ -50,6 +53,7 @@ jobs:
           PODCAST_LINK: ${{ secrets.PODCAST_LINK }}
           PODCAST_LANGUAGE: ${{ secrets.PODCAST_LANGUAGE }}
           PODCAST_IMAGE: ${{ secrets.PODCAST_IMAGE }}
+          YOUTUBE_COOKIES_FILE: cookies.txt
         run: python -m src.pipeline 2>&1 | tee pipeline.log
 
       - name: Upload logs on failure

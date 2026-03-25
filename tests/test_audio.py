@@ -31,6 +31,13 @@ def test_download_audio_ffmpeg_location_not_set(mock_getenv):
         download_audio(video_id, save_path)
 
 
+@patch("src.audio.Path.is_file", return_value=False)
+@patch("src.audio.os.getenv", side_effect=lambda key, default="": "/fake/cookies.txt" if key == "YOUTUBE_COOKIES_FILE" else "fake_ffmpeg")
+def test_download_audio_cookie_file_not_found(mock_getenv, mock_is_file):
+    with pytest.raises(RuntimeError, match="YOUTUBE_COOKIES_FILE is set but the file does not exist"):
+        download_audio("test_video_id", "test_save_path")
+
+
 @patch("src.audio.yt_dlp.YoutubeDL")
 @patch("src.audio.Path.is_file")
 def test_download_audio_file_not_created(mock_is_file, mock_ydl):

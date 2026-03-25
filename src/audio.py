@@ -10,9 +10,14 @@ load_dotenv()
 
 def download_audio(video_id: str, save_path: str) -> str:
     FFMPEG_LOCATION = os.getenv("FFMPEG_LOCATION")
+    YOUTUBE_COOKIES_FILE = os.getenv("YOUTUBE_COOKIES_FILE", "")
     if not FFMPEG_LOCATION:
         raise RuntimeError(
             "FFMPEG_LOCATION not set in environment variables. Please set FFMPEG_LOCATION to the path of your FFmpeg installation."
+        )
+    if YOUTUBE_COOKIES_FILE and not Path(YOUTUBE_COOKIES_FILE).is_file():
+        raise RuntimeError(
+            f"YOUTUBE_COOKIES_FILE is set but the file does not exist: {YOUTUBE_COOKIES_FILE}"
         )
     try:
         URL = f"https://www.youtube.com/watch?v={video_id}"
@@ -23,6 +28,7 @@ def download_audio(video_id: str, save_path: str) -> str:
                 "outtmpl": f"{save_path}/%(id)s",
                 "ffmpeg_location": FFMPEG_LOCATION,
                 "remote_components": "ejs:github",
+                "cookiefile": YOUTUBE_COOKIES_FILE,
                 "postprocessors": [
                     {
                         "key": "FFmpegExtractAudio",
