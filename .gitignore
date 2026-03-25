@@ -15,3 +15,6 @@ __pycache__/
 
 #Audio files
 data/audio/*.mp3
+
+#cookies
+cookies.txt
