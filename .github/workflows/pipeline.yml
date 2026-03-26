@@ -43,10 +43,12 @@ jobs:
       - name: Update yt-dlp
         run: pip install -U yt-dlp
 
-      - name: Start bgutil HTTP server
+      - name: Setup bgutil PO Token server
         run: |
-          python -m bgutil_ytdlp_pot_provider.server &
-          sleep 5
+          git clone https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /home/runner/bgutil-ytdlp-pot-provider
+          cd /home/runner/bgutil-ytdlp-pot-provider/server
+          npm install
+          sleep 2
     
       - name: Verify PO Token provider
         run: yt-dlp -v "https://www.youtube.com/watch?v=Bl1C-A1dCsw" --skip-download 2>&1 | grep -i "pot\|token\|bgutil" || true
