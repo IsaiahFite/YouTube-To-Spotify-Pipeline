@@ -48,6 +48,7 @@ jobs:
           git clone https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /home/runner/bgutil-ytdlp-pot-provider
           cd /home/runner/bgutil-ytdlp-pot-provider/server
           npm install
+          npm run build
           sleep 2
     
       - name: Verify PO Token provider
