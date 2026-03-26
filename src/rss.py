@@ -34,6 +34,12 @@ def update_feed(
         raise RuntimeError(
             "PODCAST_TITLE, PODCAST_DESCRIPTION, PODCAST_LINK, PODCAST_LANGUAGE, and PODCAST_IMAGE must be set in environment variables. Please set these variables to the appropriate values for your podcast."
         )
+    PODCAST_AUTHOR = os.getenv("PODCAST_AUTHOR")
+    PODCAST_EMAIL = os.getenv("PODCAST_EMAIL")
+    if not PODCAST_AUTHOR or not PODCAST_EMAIL:
+        raise RuntimeError(
+            "PODCAST_AUTHOR and PODCAST_EMAIL must be set in environment variables."
+        )
 
     try:
         g = Github(GITHUB_TOKEN)
@@ -58,7 +64,10 @@ def update_feed(
                 raise RuntimeError("Invalid RSS feed: missing channel element")
         else:
             # Create new RSS feed
-            rss = Element("rss", version="2.0")
+            rss = Element("rss", attrib={
+                "version": "2.0",
+                "xmlns:itunes": "http://www.itunes.com/dtds/podcast-1.0.dtd"
+            })
             channel = SubElement(rss, "channel")
             SubElement(channel, "title").text = PODCAST_TITLE
             SubElement(channel, "description").text = PODCAST_DESCRIPTION
@@ -66,6 +75,9 @@ def update_feed(
             SubElement(channel, "language").text = PODCAST_LANGUAGE
             image = SubElement(channel, "image")
             SubElement(image, "url").text = PODCAST_IMAGE
+            SubElement(channel, "itunes:author").text = PODCAST_AUTHOR
+            owner = SubElement(channel, "itunes:owner")
+            SubElement(owner, "itunes:email").text = PODCAST_EMAIL
 
         # Check if item with same guid already exists
         if channel.find(f"./item[guid='{guid}']") is not None:

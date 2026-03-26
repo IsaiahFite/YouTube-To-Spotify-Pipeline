@@ -40,13 +40,16 @@ jobs:
       - name: Install yt-dlp PO Token provider
         run: pip install bgutil-ytdlp-pot-provider
 
-      - name: Download yt-dlp remote components
-        run: yt-dlp --remote-components ejs:github --update-to nightly || true
+      - name: Update yt-dlp
+        run: pip install -U yt-dlp
 
-      - name: Start bgutil HTTP server
+      - name: Setup bgutil PO Token server
         run: |
-          bgutil-pot server &
-          sleep 3
+          git clone https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /home/runner/bgutil-ytdlp-pot-provider
+          cd /home/runner/bgutil-ytdlp-pot-provider/server
+          npm install
+          npx tsc
+          sleep 2
     
       - name: Verify PO Token provider
         run: yt-dlp -v "https://www.youtube.com/watch?v=Bl1C-A1dCsw" --skip-download 2>&1 | grep -i "pot\|token\|bgutil" || true

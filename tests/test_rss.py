@@ -13,6 +13,8 @@ FULL_ENV = {
     "PODCAST_LINK": "http://test.com",
     "PODCAST_LANGUAGE": "en",
     "PODCAST_IMAGE": "http://test.com/image.jpg",
+    "PODCAST_AUTHOR": "Test Author",
+    "PODCAST_EMAIL": "test@example.com",
 }
 
 
@@ -51,6 +53,62 @@ def test_missing_podcast_env_vars():
     """Test that missing podcast env vars raise RuntimeError."""
     with pytest.raises(RuntimeError, match="PODCAST_TITLE"):
         update_feed("title", "desc", "2024-01-01", "http://audio.mp3", "guid-1")
+
+
+@patch.dict(
+    "os.environ",
+    {
+        "GITHUB_TOKEN": "test_token",
+        "GITHUB_REPO": "test/repo",
+        "PODCAST_TITLE": "Test Podcast",
+        "PODCAST_DESCRIPTION": "Test Description",
+        "PODCAST_LINK": "http://test.com",
+        "PODCAST_LANGUAGE": "en",
+        "PODCAST_IMAGE": "http://test.com/image.jpg",
+        "PODCAST_AUTHOR": "",
+        "PODCAST_EMAIL": "",
+    },
+)
+def test_missing_author_email_env_vars():
+    """Test that missing PODCAST_AUTHOR or PODCAST_EMAIL raises RuntimeError."""
+    with pytest.raises(RuntimeError, match="PODCAST_AUTHOR and PODCAST_EMAIL must be set"):
+        update_feed("title", "desc", "2024-01-01", "http://audio.mp3", "guid-1")
+
+
+@patch.dict("os.environ", FULL_ENV)
+@patch("src.rss.Github")
+@patch("src.rss.requests")
+@patch("src.rss.os.remove")
+def test_new_feed_contains_author_and_email(_mock_remove, mock_requests, mock_github):
+    """Test that a newly created feed includes itunes:author and itunes:email."""
+    mock_release = MagicMock()
+    mock_release.get_assets.return_value = []
+
+    mock_repo = MagicMock()
+    mock_repo.get_release.return_value = mock_release
+
+    mock_github_instance = MagicMock()
+    mock_github_instance.get_repo.return_value = mock_repo
+    mock_github.return_value = mock_github_instance
+
+    mock_requests.head.return_value.headers = {"Content-Length": "1000"}
+
+    update_feed(
+        "Episode 1",
+        "Desc",
+        "Mon, 01 Jan 2024 00:00:00 +0000",
+        "http://audio.mp3",
+        "guid-1",
+    )
+
+    temp_path = mock_release.upload_asset.call_args[1]["path"]
+    with open(temp_path, "r", encoding="utf-8") as f:
+        xml_content = f.read()
+
+    assert "Test Author" in xml_content
+    assert "test@example.com" in xml_content
+
+    os.remove(temp_path)
 
 
 @patch.dict("os.environ", FULL_ENV)

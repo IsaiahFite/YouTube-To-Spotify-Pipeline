@@ -60,6 +60,12 @@ def run_pipeline() -> None:
                 os.remove(local_path)
                 break
             except RuntimeError as e:
+                if "already exists in feed" in str(e):
+                    # Already processed, just mark it done and move on
+                    save_processed(pub_date)
+                    if local_path and os.path.exists(local_path):
+                        os.remove(local_path)
+                    break
                 # Clean up any partially downloaded file before retrying or raising
                 if local_path and os.path.exists(local_path):
                     os.remove(local_path)
