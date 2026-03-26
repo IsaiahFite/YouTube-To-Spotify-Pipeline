@@ -42,6 +42,14 @@ jobs:
 
       - name: Download yt-dlp remote components
         run: yt-dlp --remote-components ejs:github --update-to nightly || true
+
+      - name: Start bgutil HTTP server
+        run: |
+          bgutil-pot server &
+          sleep 3
+    
+      - name: Verify PO Token provider
+        run: yt-dlp -v "https://www.youtube.com/watch?v=Bl1C-A1dCsw" --skip-download 2>&1 | grep -i "pot\|token\|bgutil" || true
         
       - name: Run Pipeline
         env:
@@ -56,7 +64,6 @@ jobs:
           PODCAST_LINK: ${{ secrets.PODCAST_LINK }}
           PODCAST_LANGUAGE: ${{ secrets.PODCAST_LANGUAGE }}
           PODCAST_IMAGE: ${{ secrets.PODCAST_IMAGE }}
-          YOUTUBE_COOKIES_FILE: cookies.txt
         run: python -m src.pipeline 2>&1 | tee pipeline.log
 
       - name: Upload logs on failure
