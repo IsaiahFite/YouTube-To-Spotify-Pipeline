@@ -48,8 +48,12 @@ jobs:
           git clone https://github.com/Brainicism/bgutil-ytdlp-pot-provider.git /home/runner/bgutil-ytdlp-pot-provider
           cd /home/runner/bgutil-ytdlp-pot-provider/server
           npm install
-          npm run
+          npx tsc
           sleep 2
+
+      - name: Verify bgutil build
+        run: |
+          ls /home/runner/bgutil-ytdlp-pot-provider/server/build/
     
       - name: Verify PO Token provider
         run: yt-dlp -v "https://www.youtube.com/watch?v=Bl1C-A1dCsw" --skip-download 2>&1 | grep -i "pot\|token\|bgutil" || true
