@@ -25,6 +25,10 @@ def upload_audio(local_path: str) -> str:
                 name="Podcast Audio Release",
                 message="Release for podcast audio files",
             )
+        filename = os.path.basename(local_path)
+        existing = next((a for a in release.get_assets() if a.name == filename), None)
+        if existing:
+            return existing.browser_download_url
         asset = release.upload_asset(path=local_path)
         return asset.browser_download_url
     except FileNotFoundError:
