@@ -77,6 +77,9 @@ def test_get_livestreams_real():
     reason="TEST_VIDEO_ID and FFMPEG_LOCATION must be set",
 )
 def test_pipeline_real_download():
+    from unittest.mock import MagicMock
+    from xml.etree.ElementTree import Element, SubElement
+
     assert TEST_VIDEO_ID  # already guaranteed by skipif, satisfies type checker
     fake_video = {
         "id": TEST_VIDEO_ID,
@@ -87,12 +90,18 @@ def test_pipeline_real_download():
         },
     }
 
+    mock_rss = Element("rss")
+    mock_channel = SubElement(mock_rss, "channel")
+    mock_release = MagicMock()
+    mock_assets = []
+
     with TemporaryDirectory() as temp_dir:
         original_cwd = os.getcwd()
         os.chdir(temp_dir)
         try:
             with patch.dict("os.environ", {"YOUTUBE_CHANNEL_ID": "UCtest"}), \
                  patch("src.pipeline.get_livestreams", return_value=[fake_video]), \
+                 patch("src.pipeline.fetch_feed", return_value=(mock_rss, mock_channel, mock_release, mock_assets)), \
                  patch("src.pipeline.upload_audio", return_value="https://example.com/audio.mp3") as mock_upload, \
                  patch("src.pipeline.update_feed") as mock_feed, \
                  patch("src.pipeline.save_processed") as mock_save:
@@ -105,11 +114,11 @@ def test_pipeline_real_download():
     upload_path = mock_upload.call_args[0][0]
     assert not Path(upload_path).exists(), "Pipeline should remove audio file after upload"
 
-    mock_feed.assert_called_once_with(
-        "Integration Test Video",
-        "Integration test description",
-        "2024-01-01T00:00:00Z",
-        "https://example.com/audio.mp3",
-        f"https://www.youtube.com/watch?v={TEST_VIDEO_ID}",
-    )
+    mock_feed.assert_called_once()
+    _, _, _, _, feed_title, feed_desc, feed_date, feed_audio_url, feed_guid = mock_feed.call_args[0]
+    assert feed_title == "Integration Test Video"
+    assert feed_desc == "Integration test description"
+    assert feed_date == "2024-01-01T00:00:00Z"
+    assert feed_audio_url == "https://example.com/audio.mp3"
+    assert feed_guid == f"https://www.youtube.com/watch?v={TEST_VIDEO_ID}"
     mock_save.assert_called_once_with("2024-01-01T00:00:00Z")

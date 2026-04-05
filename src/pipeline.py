@@ -1,7 +1,7 @@
 from src.youtube import get_livestreams
 from src.audio import download_audio
 from src.hosting import upload_audio
-from src.rss import update_feed
+from src.rss import fetch_feed, get_existing_guids, update_feed
 from src.tracker import save_processed
 from dotenv import load_dotenv
 import html
@@ -39,6 +39,10 @@ def run_pipeline() -> None:
         print("No new videos found.")
         return
 
+    # Fetch the RSS feed once for the entire pipeline run
+    rss, channel, release, assets = fetch_feed()
+    existing_guids = get_existing_guids(channel)
+
     for video in reversed(videos):
         # Extract and decode episode metadata from the YouTube API response
         video_id = video["id"]
@@ -47,6 +51,12 @@ def run_pipeline() -> None:
         pub_date = video["snippet"]["publishedAt"]
         # Use the full YouTube URL as the globally unique episode identifier in the RSS feed
         guid = f"https://www.youtube.com/watch?v={video_id}"
+
+        # Skip episodes already present in the feed
+        if guid in existing_guids:
+            save_processed(pub_date)
+            continue
+
         local_path = None
 
         # Process each video with one retry; stop the pipeline if the retry also fails
@@ -55,17 +65,11 @@ def run_pipeline() -> None:
                 # Download audio locally, upload to hosting, update the RSS feed, then record and clean up
                 local_path = download_audio(video_id, "data/audio")
                 audio_url = upload_audio(local_path)
-                update_feed(title, description, pub_date, audio_url, guid)
+                update_feed(rss, channel, release, assets, title, description, pub_date, audio_url, guid)
                 save_processed(pub_date)
                 os.remove(local_path)
                 break
             except RuntimeError as e:
-                if "already exists in feed" in str(e):
-                    # Already processed, just mark it done and move on
-                    save_processed(pub_date)
-                    if local_path and os.path.exists(local_path):
-                        os.remove(local_path)
-                    break
                 # Clean up any partially downloaded file before retrying or raising
                 if local_path and os.path.exists(local_path):
                     os.remove(local_path)
