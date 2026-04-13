@@ -4,13 +4,16 @@ from xml.etree.ElementTree import Element, SubElement
 from src.pipeline import run_pipeline
 
 
-def make_video(video_id, title="Test Title", description="Test Description", pub_date="2024-01-01T00:00:00Z"):
+def make_video(video_id, title="Test Title", description="Test Description", pub_date="2024-01-01T00:00:00Z", thumbnails=None):
+    if thumbnails is None:
+        thumbnails = {"maxres": {"url": "https://example.com/maxres.jpg"}}
     return {
         "id": video_id,
         "snippet": {
             "title": title,
             "description": description,
             "publishedAt": pub_date,
+            "thumbnails": thumbnails,
         }
     }
 
@@ -75,6 +78,7 @@ def test_run_pipeline_success(
         "2024-01-01T00:00:00Z",
         "https://example.com/audio.mp3",
         "https://www.youtube.com/watch?v=vid1",
+        "https://example.com/maxres.jpg",
     )
     mock_save.assert_called_once_with("2024-01-01T00:00:00Z")
     mock_remove.assert_called_once_with("data/audio/vid1.mp3")
@@ -216,3 +220,51 @@ def test_run_pipeline_creates_audio_directory(mock_makedirs):
 
     # Assert
     mock_makedirs.assert_called_once_with("data/audio", exist_ok=True)
+
+
+@pytest.mark.parametrize("thumbnails,expected_url", [
+    (
+        {"maxres": {"url": "max.jpg"}, "standard": {"url": "std.jpg"}, "medium": {"url": "med.jpg"}, "default": {"url": "def.jpg"}},
+        "max.jpg",
+    ),
+    (
+        {"standard": {"url": "std.jpg"}, "medium": {"url": "med.jpg"}, "default": {"url": "def.jpg"}},
+        "std.jpg",
+    ),
+    (
+        {"medium": {"url": "med.jpg"}, "default": {"url": "def.jpg"}},
+        "med.jpg",
+    ),
+    (
+        {"default": {"url": "def.jpg"}},
+        "def.jpg",
+    ),
+    (
+        {},
+        "",
+    ),
+])
+@patch.dict("os.environ", {"YOUTUBE_CHANNEL_ID": "UCtest"})
+@patch("src.pipeline.os.remove")
+@patch("src.pipeline.save_processed")
+@patch("src.pipeline.update_feed")
+@patch("src.pipeline.upload_audio", return_value="https://example.com/audio.mp3")
+@patch("src.pipeline.download_audio", return_value="data/audio/vid1.mp3")
+@patch("src.pipeline.fetch_feed")
+@patch("src.pipeline.get_livestreams")
+def test_run_pipeline_thumbnail_fallback(
+    mock_get_livestreams, mock_fetch_feed, mock_download, mock_upload,
+    mock_update_feed, mock_save, mock_remove,
+    thumbnails, expected_url,
+):
+    """Thumbnail URL passed to update_feed follows maxres→standard→medium→default priority."""
+    video = make_video("vid1", thumbnails=thumbnails)
+    mock_get_livestreams.return_value = [video]
+    mock_fetch_feed.return_value = _make_fetch_feed_return()
+
+    with patch("src.pipeline.os.makedirs"):
+        run_pipeline()
+
+    _, call_kwargs = mock_update_feed.call_args
+    passed_thumbnail = mock_update_feed.call_args[0][9]
+    assert passed_thumbnail == expected_url

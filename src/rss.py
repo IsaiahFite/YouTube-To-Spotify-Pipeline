@@ -99,12 +99,16 @@ def update_feed(
     pub_date: str,
     audio_url: str,
     guid: str,
+    thumbnail_url: str = "",
 ) -> None:
     item = SubElement(channel, "item")
     SubElement(item, "title").text = title
     SubElement(item, "description").text = description
     SubElement(item, "pubDate").text = pub_date
     SubElement(item, "guid").text = guid
+    if thumbnail_url:
+        itunes_image = SubElement(item, "itunes:image")
+        itunes_image.set("href", thumbnail_url)
     enclosure = SubElement(item, "enclosure")
     enclosure.set("url", audio_url)
     enclosure.set(

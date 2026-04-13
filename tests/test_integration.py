@@ -87,6 +87,7 @@ def test_pipeline_real_download():
             "title": "Integration Test Video",
             "description": "Integration test description",
             "publishedAt": "2024-01-01T00:00:00Z",
+            "thumbnails": {"default": {"url": "https://example.com/thumb.jpg"}},
         },
     }
 
@@ -115,7 +116,7 @@ def test_pipeline_real_download():
     assert not Path(upload_path).exists(), "Pipeline should remove audio file after upload"
 
     mock_feed.assert_called_once()
-    _, _, _, _, feed_title, feed_desc, feed_date, feed_audio_url, feed_guid = mock_feed.call_args[0]
+    _, _, _, _, feed_title, feed_desc, feed_date, feed_audio_url, feed_guid, feed_thumbnail = mock_feed.call_args[0]
     assert feed_title == "Integration Test Video"
     assert feed_desc == "Integration test description"
     assert feed_date == "2024-01-01T00:00:00Z"
