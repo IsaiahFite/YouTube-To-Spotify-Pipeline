@@ -51,6 +51,15 @@ def run_pipeline() -> None:
         pub_date = video["snippet"]["publishedAt"]
         # Use the full YouTube URL as the globally unique episode identifier in the RSS feed
         guid = f"https://www.youtube.com/watch?v={video_id}"
+        # Prefer the highest-resolution thumbnail available
+        thumbnails = video["snippet"]["thumbnails"]
+        thumbnail_url = (
+            thumbnails.get("maxres")
+            or thumbnails.get("standard")
+            or thumbnails.get("medium")
+            or thumbnails.get("default")
+            or {}
+        ).get("url", "")
 
         # Skip episodes already present in the feed
         if guid in existing_guids:
@@ -65,7 +74,7 @@ def run_pipeline() -> None:
                 # Download audio locally, upload to hosting, update the RSS feed, then record and clean up
                 local_path = download_audio(video_id, "data/audio")
                 audio_url = upload_audio(local_path)
-                update_feed(rss, channel, release, assets, title, description, pub_date, audio_url, guid)
+                update_feed(rss, channel, release, assets, title, description, pub_date, audio_url, guid, thumbnail_url)
                 save_processed(pub_date)
                 os.remove(local_path)
                 break

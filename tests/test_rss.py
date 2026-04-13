@@ -282,6 +282,7 @@ def test_update_feed_appends_item_with_required_tags(_mock_remove, mock_requests
         "Mon, 01 Jan 2024 00:00:00 +0000",
         "http://audio.example.com/ep1.mp3",
         "guid-episode-1",
+        "https://example.com/thumb.jpg",
     )
 
     temp_path = mock_release.upload_asset.call_args[1]["path"]
@@ -314,6 +315,7 @@ def test_update_feed_uploads_to_release(_mock_remove, mock_requests):
         "Mon, 01 Jan 2024 00:00:00 +0000",
         "http://audio.mp3",
         "guid-1",
+        "https://example.com/thumb.jpg",
     )
 
     call_kwargs = mock_release.upload_asset.call_args[1]
@@ -341,6 +343,7 @@ def test_update_feed_deletes_existing_asset_before_upload(_mock_remove, mock_req
         "Mon, 01 Jan 2024 00:00:00 +0000",
         "http://audio.mp3",
         "guid-1",
+        "https://example.com/thumb.jpg",
     )
 
     mock_old_asset.delete_asset.assert_called_once()
@@ -368,7 +371,66 @@ def test_update_feed_mutates_assets_list(_mock_remove, mock_requests):
         "Mon, 01 Jan 2024 00:00:00 +0000",
         "http://audio.mp3",
         "guid-1",
+        "https://example.com/thumb.jpg",
     )
 
     assert old_asset not in assets
     assert new_asset in assets
+
+
+@patch("src.rss.requests")
+@patch("src.rss.os.remove")
+def test_update_feed_includes_itunes_image(_mock_remove, mock_requests):
+    """update_feed appends <itunes:image> with the correct href when thumbnail_url is provided."""
+    rss, channel = _make_channel()
+    mock_release = MagicMock()
+    mock_release.upload_asset.return_value = MagicMock(name="feed.xml")
+    assets = []
+
+    mock_requests.head.return_value.headers = {"Content-Length": "5000"}
+
+    update_feed(
+        rss, channel, mock_release, assets,
+        "Episode 1", "A great episode",
+        "Mon, 01 Jan 2024 00:00:00 +0000",
+        "http://audio.example.com/ep1.mp3",
+        "guid-episode-1",
+        "https://example.com/maxres.jpg",
+    )
+
+    temp_path = mock_release.upload_asset.call_args[1]["path"]
+    with open(temp_path, "r", encoding="utf-8") as f:
+        xml_content = f.read()
+
+    assert 'itunes:image' in xml_content
+    assert 'href="https://example.com/maxres.jpg"' in xml_content
+
+    os.remove(temp_path)
+
+
+@patch("src.rss.requests")
+@patch("src.rss.os.remove")
+def test_update_feed_omits_itunes_image_when_no_thumbnail(_mock_remove, mock_requests):
+    """update_feed does not append <itunes:image> when thumbnail_url is empty."""
+    rss, channel = _make_channel()
+    mock_release = MagicMock()
+    mock_release.upload_asset.return_value = MagicMock(name="feed.xml")
+    assets = []
+
+    mock_requests.head.return_value.headers = {"Content-Length": "5000"}
+
+    update_feed(
+        rss, channel, mock_release, assets,
+        "Episode 1", "A great episode",
+        "Mon, 01 Jan 2024 00:00:00 +0000",
+        "http://audio.example.com/ep1.mp3",
+        "guid-episode-1",
+    )
+
+    temp_path = mock_release.upload_asset.call_args[1]["path"]
+    with open(temp_path, "r", encoding="utf-8") as f:
+        xml_content = f.read()
+
+    assert 'itunes:image' not in xml_content
+
+    os.remove(temp_path)
