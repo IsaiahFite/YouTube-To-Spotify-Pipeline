@@ -14,7 +14,7 @@ def trim_leading_silence(file_path: str) -> None:
     FFMPEG_LOCATION = os.getenv("FFMPEG_LOCATION")
     ffmpeg_bin = str(Path(FFMPEG_LOCATION) / "ffmpeg") if FFMPEG_LOCATION else "ffmpeg"
 
-    detect = subprocess.run(
+    detect = subprocess.run(  # noqa: S603
         [ffmpeg_bin, "-i", file_path, "-af", "silencedetect=noise=-50dB:d=0.5", "-f", "null", "-"],
         capture_output=True,
         text=True,
@@ -29,7 +29,7 @@ def trim_leading_silence(file_path: str) -> None:
         return
 
     tmp_path = file_path + ".tmp"
-    subprocess.run(
+    subprocess.run(  # noqa: S603
         [ffmpeg_bin, "-y", "-ss", str(ends[0]), "-i", file_path, "-acodec", "copy", tmp_path],
         capture_output=True,
         check=True,
