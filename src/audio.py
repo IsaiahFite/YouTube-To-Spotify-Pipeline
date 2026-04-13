@@ -1,11 +1,40 @@
 from dotenv import load_dotenv
 import os
 from pathlib import Path
+import re
+import subprocess
 from typing import Any, cast
 import yt_dlp
 from yt_dlp.utils import DownloadError
 
 load_dotenv()
+
+
+def trim_leading_silence(file_path: str) -> None:
+    FFMPEG_LOCATION = os.getenv("FFMPEG_LOCATION")
+    ffmpeg_bin = str(Path(FFMPEG_LOCATION) / "ffmpeg") if FFMPEG_LOCATION else "ffmpeg"
+
+    detect = subprocess.run(  # noqa: S603
+        [ffmpeg_bin, "-i", file_path, "-af", "silencedetect=noise=-50dB:d=0.5", "-f", "null", "-"],
+        capture_output=True,
+        text=True,
+    )
+
+    starts = [float(m.group(1)) for m in re.finditer(r"silence_start:\s*([\d.]+)", detect.stderr)]
+    ends = [float(m.group(1)) for m in re.finditer(r"silence_end:\s*([\d.]+)\s*\|", detect.stderr)]
+
+    if not starts or starts[0] > 0:
+        return
+    if not ends:
+        return
+
+    tmp_path = file_path + ".tmp"
+    subprocess.run(  # noqa: S603
+        [ffmpeg_bin, "-y", "-ss", str(ends[0]), "-i", file_path, "-acodec", "copy", tmp_path],
+        capture_output=True,
+        check=True,
+    )
+    os.replace(tmp_path, file_path)
 
 
 def download_audio(video_id: str, save_path: str) -> str:
@@ -37,6 +66,7 @@ def download_audio(video_id: str, save_path: str) -> str:
         p = Path(output_path)
         if not p.is_file():
             raise RuntimeError(f"Failed to create audio file for video {video_id}")
+        trim_leading_silence(output_path)
         return output_path
     except DownloadError as e:
         raise RuntimeError(f"Failed to download video {video_id}: {e}")
