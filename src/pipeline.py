@@ -50,7 +50,7 @@ def run_pipeline() -> None:
         description = html.unescape(video["snippet"]["description"])
         pub_date = video["snippet"]["publishedAt"]
         # Use the full YouTube URL as the globally unique episode identifier in the RSS feed
-        guid = f"https://www.youtube.com/watch?v={video_id}"
+        guid = f"https://www.youtube.com/watch?v={video_id}-v2"
         # Prefer the highest-resolution thumbnail available
         thumbnails = video["snippet"]["thumbnails"]
         thumbnail_url = (
