@@ -21,21 +21,32 @@ def trim_leading_silence(file_path: str) -> None:
     )
 
     starts = [float(m.group(1)) for m in re.finditer(r"silence_start:\s*([\d.]+)", detect.stderr)]
-    ends = [float(m.group(1)) for m in re.finditer(r"silence_end:\s*([\d.]+)\s*\|", detect.stderr)]
+    ends = [(float(m.group(1)), float(m.group(2))) for m in re.finditer(r"silence_end:\s*([\d.]+)\s*\|\s*silence_duration:\s*([\d.]+)", detect.stderr)]
+
+    long_silences = [e for e in ends if e[1] >= 60 and e[0] <= 600]
+
+    if long_silences:
+        trim_silence(file_path, long_silences[-1][0])
+        return
 
     if not starts or starts[0] > 0:
         return
     if not ends:
         return
+    
+    trim_silence(file_path, ends[0][0])
 
-    tmp_path = file_path + ".tmp"
+def trim_silence(file_path: str, trim_at: float) -> None:
+    FFMPEG_LOCATION = os.getenv("FFMPEG_LOCATION")
+    ffmpeg_bin = str(Path(FFMPEG_LOCATION) / "ffmpeg") if FFMPEG_LOCATION else "ffmpeg"
+
+    tmp_path = file_path.removesuffix(".mp3") + ".tmp.mp3"
     subprocess.run(  # noqa: S603
-        [ffmpeg_bin, "-y", "-ss", str(ends[0]), "-i", file_path, "-acodec", "copy", tmp_path],
+        [ffmpeg_bin, "-y", "-ss", str(trim_at), "-i", file_path, "-acodec", "copy", tmp_path],
         capture_output=True,
         check=True,
     )
     os.replace(tmp_path, file_path)
-
 
 def download_audio(video_id: str, save_path: str) -> str:
     FFMPEG_LOCATION = os.getenv("FFMPEG_LOCATION")
