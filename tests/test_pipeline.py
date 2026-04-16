@@ -77,7 +77,7 @@ def test_run_pipeline_success(
         "My desc",
         "2024-01-01T00:00:00Z",
         "https://example.com/audio.mp3",
-        "https://www.youtube.com/watch?v=vid1",
+        "https://www.youtube.com/watch?v=vid1-v2",
         "https://example.com/maxres.jpg",
     )
     mock_save.assert_called_once_with("2024-01-01T00:00:00Z")
